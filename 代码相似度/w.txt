@@ -1,0 +1,152 @@
+#include<iostream>
+#include<string>
+#include<fstream>
+#include<math.h>
+using namespace std;
+struct HashMe{
+	string word;
+	double firstnumber;	
+	double secondnumber;
+};
+
+class HashClass{
+private:	
+public:
+	HashMe hash[1000];
+	void InsertFirst(string word){
+		int length=word.length();
+	    int number=length*3%1000;
+		if(hash[number].word[0]!='\0'){
+			while(hash[number].word!=word&&hash[number].word[0]!='\0'){
+				number++;
+			}
+			if(hash[number].word==word)
+			hash[number].firstnumber++;
+			else {
+				hash[number].word=word;
+				hash[number].firstnumber=1;
+				hash[number].secondnumber=0;
+			}
+		}else{
+			hash[number].word=word;
+			hash[number].firstnumber=1;
+			hash[number].secondnumber=0;
+			
+		}
+		//cout<<number<<"   ";
+		//cout<<hash[number].firstnumber<<endl;
+		cout<<hash[number].word<<endl;
+	}
+	void InsertSecond(string word){
+		int length=word.length();
+	    int number=length*3%1000;
+		if(hash[number].word[0]!='\0'){
+			while(hash[number].word!=word&&hash[number].word[0]!='\0'){
+				number++;
+			}
+			if(hash[number].word==word)
+			hash[number].secondnumber++;
+			else {
+				hash[number].word=word;
+				hash[number].secondnumber=1;
+				hash[number].firstnumber=0;
+			}
+		}else{
+			hash[number].word=word;
+			hash[number].secondnumber=1;
+			hash[number].firstnumber=0;
+		}
+		//cout<<number<<"  ";
+		//cout<<hash[number].secondnumber<<endl;
+		cout<<hash[number].word<<endl;
+		
+	}
+	void Compare(){
+		double num=0;
+		for(int i=0;i<1000;i++){
+			num=num+DifferenceOfSquares(hash[i].firstnumber-hash[i].secondnumber);
+		}
+		cout<<num<<endl;
+		cout<<sqrt(num);
+	}
+	double DifferenceOfSquares(double number){
+		return number*number;
+	}
+	
+};
+
+HashClass DocumentFirst(HashClass hash){
+	ifstream out;
+    string String="";
+	char buffer;
+	out.open("F:\\vc\\´úÂëÏàËÆ¶È\\w.txt",ios::in);
+	while(!out.eof()){
+		buffer=out.get();
+		if(buffer=='	'||buffer==47||buffer==40||buffer==41||buffer==32||buffer==10||buffer==59||buffer==60||buffer==62||buffer==123||buffer==125){
+			if(String!=""){
+				hash.InsertFirst(String);
+			}
+			String="";
+		}else{
+			String=String+buffer;
+		}
+
+
+		/*if((buffer>=97&&buffer<=122)||(buffer>=65&&buffer<=90)){
+			String=String+buffer;
+			
+		}
+		else{
+			if(String!=""){
+				hash.InsertFirst(String);
+			}
+			String="";
+		}*/
+		
+
+	}
+	out.close();
+	return hash;
+}
+
+HashClass DocumentSecond(HashClass hash){
+	ifstream out;
+    string String="";
+	char buffer;
+	out.open("F:\\vc\\RE\\Re.cpp",ios::in);
+	while(!out.eof()){
+		buffer=out.get();
+		if(buffer=='	'||buffer==47||buffer==40||buffer==41||buffer==32||buffer==10||buffer==59||buffer==60||buffer==62||buffer==123||buffer==125){
+			
+			if(String!=""){
+				hash.InsertSecond(String);
+			}
+			String="";
+		}else{
+			String=String+buffer;
+		}
+
+
+		/*if((buffer>=97&&buffer<=122)||(buffer>=65&&buffer<=90)){
+			
+			
+		}
+		else{
+			if(String!=""){
+				hash.InsertSecond(String);
+			}
+			String="";
+		}*/	
+
+
+	}
+	out.close();
+	return hash;
+}
+int main(){
+	HashClass hash;
+	hash=DocumentFirst(hash);
+	hash=DocumentSecond(hash);
+	hash.Compare();	
+	return 0;
+}

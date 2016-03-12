@@ -1,0 +1,50 @@
+#include<iostream>
+#include<string>
+#include<fstream>
+#include<math.h>
+using namespace std;
+struct HashMe{
+	string word;
+	double firstnumber;	
+	double secondnumber;
+};
+template <class Key,class Word>
+class HashClass{
+private:
+	Key key;
+	Word word;
+	
+public:
+	HashMe hash[1000];
+	void InsertFirst(string word){
+		int length=word.length();
+	    int number=length*3%1000;
+		(hash[number].word[0]!='\0'){
+			while(hash[number].word!=word&&hash[number].word[0]!='\0'){
+				number++;
+			}
+			if(hash[number].word==word)
+			hash[number].firstnumber++;
+			else {
+				hash[number].word=word;
+				hash[number].firstnumber=1;
+				hash[number].secondnumber=0;
+			}
+		}else{
+			hash[number].word=word;
+			hash[number].firstnumber=1;
+			hash[number].secondnumber=0;
+			
+		}
+		cout<<number<<"   ";
+		cout<<hash[number].firstnumber<<endl;
+		
+	}
+
+int main(){
+	HashClass<int,string> hash;
+	hash=DocumentFirst(hash);
+	hash=DocumentSecond(hash);
+	hash.Compare();	
+	return 0;
+}
