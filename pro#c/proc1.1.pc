@@ -1,0 +1,491 @@
+#include <stdio.h>
+#include <string.h>
+#include <sqlca.h>
+#include <sqlcpr.h> 
+#include <stdlib.h> 
+#include <conio.h> 
+
+/* 全局变量定义  */
+ 
+exec sql include SQLCA; 
+#include <stdio.h>
+#include <string.h>
+#include <sqlca.h>
+#include <sqlcpr.h> 
+#include <stdlib.h> 
+#include <conio.h> 
+
+/* 全局变量定义  */
+ 
+exec sql include SQLCA; 
+
+/**        函数原型说明   */
+void logon();   //登陆 
+void sql_error(); //错误处理
+void insert_s();  //对S表插入数据  
+void deletemenu();//删除主菜单
+void deletesno(); //用学号删除
+void deletename();//用姓名删除
+void viewmenu();//查看数据主菜单
+void viewall();//查看全部学生数据
+void views();//查看学生基本信息
+void viewgrade();//查看学生成绩
+void updatemenu();//更改数据主菜单
+void updates();//更改基本信息
+void updatesc();//更改成绩
+void menu();//主菜单
+/** 主函数  */
+int main()
+{  
+  logon();
+  menu();
+  exec sql commit release; 
+} 
+void menu()  //	主菜单
+{
+
+  int i; 
+  printf("　　　                             \n　欢迎来到学生管理系统　\n"); 
+  printf("　　　　                              \n    1.删除\n");
+  printf("　　　　　                            \n    2.插入\n");
+  printf("　　　　　                            \n    3.查询\n");
+  printf("                                      \n    4.修改\n");
+  printf("                                      \n    5.退出\n");
+  printf("                    请选择：");
+  fflush(stdin);
+  scanf("%d",&i);
+  system("cls");
+  switch(i)
+  {
+      case 1:
+	  deletemenu();
+	  break;
+	  case 2:
+	  insert_s();
+	  break;
+	  case 3:
+	  viewmenu();
+	  break;
+	  case 4:
+	  updatemenu();
+	  break;
+	  case 5:
+	  exit(0);
+	  break;
+	  default:
+	  system("cls");
+	  menu();
+	  break;
+  } 
+} 
+ 
+void sql_error()//错误处理
+{   
+   printf("\n\nSQL语句执行错误，错误号：%d, 错误消息：%s\n",sqlca.sqlcode,sqlca.sqlerrm.sqlerrmc); 
+   system("pause");
+   system("cls");
+   menu();
+   
+}
+void sql_logonerror()//登陆的错误处理
+{   
+   printf("\n\nSQL语句执行错误，错误号：%d, 错误消息：%s\n",sqlca.sqlcode,sqlca.sqlerrm.sqlerrmc); 
+   system("pause");
+   exit(1);
+}
+void logon()//登陆
+{  
+   exec sql begin declare section;  
+       char user_name[100],user_pwd[20],db_name[100];  
+   exec sql end declare section;   
+   printf("            \n请输入登录信息：       \n\n");
+   printf("                           URL: "); gets(db_name); 
+   printf("                           USER: "); gets(user_name);   
+   printf("                           PSW: "); gets(user_pwd);   
+     
+   exec sql whenever SQLERROR do sql_logonerror();
+   exec sql connect :user_name
+            identified by :user_pwd using :db_name;   
+   printf("\n                        -- 登陆成功 -- \n"); 
+   getchar();
+   system("cls");
+}	 
+
+void insert_s()//向S表插入数据
+{
+   exec sql begin declare section; 
+      char var_sno[20],var_sname[20],var_sex[5],var_dept[4];
+	  int var_age;  
+   exec sql end declare section;  
+   while(1) 
+   { 
+      system("cls");
+      printf("\n--对学生表S，插入信息-- \n");
+      printf("\n温馨提示：键入字母exit,退出系统");
+	  fflush(stdin); 
+	  
+      printf("\n\n学号:"); gets(var_sno);   
+      if(strcmp(var_sno,"exit")==0)
+	   {
+	    system("cls");
+	    menu();
+		break; 
+		}
+      printf("姓名: "); gets(var_sname); 
+      printf("性别: "); gets(var_sex);   
+      printf("所在系: "); gets(var_dept); 
+      printf("年龄："); scanf("%d",&var_age);   
+      fflush(stdin);
+      exec sql whenever SQLERROR do CONTINUE;
+      exec sql insert into s values(:var_sno,:var_sname,:var_sex,:var_dept,:var_age); 
+      exec sql commit; 
+      printf("\n插入成功,完成commit!\n\n");
+      system("pause");   
+   } 
+}
+
+ void deletesno()//用学号删除
+ { 
+   	exec sql whenever SQLERROR do sql_error(); 
+    exec sql begin declare section; 
+      char s_sno[20],s_name[20],s_sex[5],s_dept[5];
+	  int s_age;
+   exec sql end declare section;
+    printf("\n                       温馨提示：键入学号为字母exit,返回上一级\n\n");
+	printf("输入删除的学号："); 
+	fflush(stdin);
+	scanf("%s",s_sno);
+	 if(strcmp(s_sno,"exit")==0)
+	 {
+	    system("cls");
+	    deletemenu();
+	
+	}
+	exec sql delete from sc where sno=:s_sno;
+	exec sql delete from s where sno=:s_sno;
+	 if (sqlca.sqlcode == 1403)
+	  {
+	      system("cls");
+	      deletesno();
+		  
+	  }
+
+	 
+	exec sql commit;
+	printf("\n删除成功，完成commit\n");	
+	getchar();
+	getchar();
+	system("cls");
+	deletesno();		  
+ }
+ void deletename()//用姓名删除
+ {
+  exec sql whenever SQLERROR do sql_error();
+    exec sql begin declare section; 
+      char s_sno[10],s_name[20],s_sex[5],s_dept[5];
+	  int s_age;
+   exec sql end declare section;
+    printf("\n                       温馨提示：键入姓名为字母exit,返回上一级\n\n");
+	printf("输入删除的姓名：");
+	scanf("%s",s_name);
+	
+	 if(strcmp(s_name,"exit")==0)
+	   {
+	    system("cls");
+	    deletemenu();	
+		}
+	exec sql delete from sc where sno =(select sno from s where sname=:s_name);
+	exec sql delete from s where sname=:s_name;
+	if (sqlca.sqlcode == 1403) 
+	{
+	      system("cls");
+		  deletename();
+	}
+	exec sql commit;
+		 
+	printf("\n删除成功，完成commit\n");
+	getchar();
+	getchar();
+	system("cls");
+	deletename();		  
+ }
+ void viewgrade()//查看成绩
+ {
+   exec sql whenever SQLERROR do sql_error();
+   exec sql begin declare section; 
+      char s_sno[20],s_name[10],s_sex[5],s_dept[5],sc_cno[5];
+	  int s_age,sc_grade;
+   exec sql end declare section; 
+   while(1)    
+   {
+   int flag=1;
+   printf("\n                       温馨提示：键入学号为字母exit,返回上一级\n\n");
+   fflush(stdin);
+   printf("请输入查找的学号：");
+   gets(s_sno);
+   if(strcmp(s_sno,"exit")==0)
+   {
+      system("cls");
+	  viewmenu();
+      
+   }
+   exec sql declare sx cursor for 
+   select cno,sname,sex,NVL(dept,'  '),NVL(grade,0) from s,sc where s.sno=:s_sno and s.sno=sc.sno;
+   exec sql open sx;
+   while(1)
+  {
+   exec sql fetch sx into :sc_cno,:s_name,:s_sex,:s_dept,:sc_grade;
+   if (sqlca.sqlcode == 1403) break;
+   if(flag==1)
+   {
+       printf("\t\t姓名\t性别\t系别\t课程\t成绩\n");
+	   flag--;
+   }
+   printf("\t\t%s%s\t%s\t%s\t%d\n",s_name,s_sex,s_dept,sc_cno,sc_grade);
+   }
+   exec sql	close sx;	
+   system("pause");
+   system("cls");
+   }
+ }
+ void views()//查看基本信息
+ {
+  
+   exec sql begin declare section; 
+      char s_sno[20],s_name[10],s_sex[5],s_dept[5],sc_cno[5];
+	  int s_age;
+   exec sql end declare section;
+   while(1)
+   {
+       printf("\n                       温馨提示：键入学号为字母exit,返回上一级\n\n");
+      printf("请输入查询学号：");
+	  fflush(stdin);
+	  scanf("%s",s_sno);
+	  if(strcmp(s_sno,"exit")==0)
+	  {
+	     system("cls");
+		 viewmenu();
+		 
+	  }
+	  exec sql select sname,sex,NVL(dept,' '),age into :s_name,:s_sex,:s_dept,:s_age from s where sno=:s_sno;
+	  if(sqlca.sqlcode==1403)
+	  {
+	     system("cls");
+	     views();
+		
+	  }
+	  printf("\t\t学号\t姓名\t性别\t系别\t年龄\n");
+	  printf("\t\t%s\t%1s%s\t%s\t%d\n",s_sno,s_name,s_sex,s_dept,s_age);
+	  exec sql commit;
+	  getchar();	
+	  getchar();
+	  system("cls");
+   }
+ }
+ void viewall()//查看所有数据
+ { 
+   exec sql whenever SQLERROR do sql_error();
+   exec sql begin declare section; 
+      char s_sno[5],s_name[10],s_sex[5],s_dept[5],sc_cno[5];
+	  int s_age,sc_grade;
+   exec sql end declare section;
+   exec sql declare all cursor for
+   select s.sno,sname,sex,NVL(dept,' '),age,cno,NVL(grade,0) from sc,s where  s.sno=sc.sno order by s.sno asc;
+   exec sql open all;
+   printf("\t学号\t姓名\t性别\t系别\t年龄\t课程号\t成绩\n");
+   while(1)
+   {
+   exec sql fetch all into :s_sno,:s_name,:s_sex,:s_dept,:s_age,:sc_cno,:sc_grade; 
+   if(sqlca.sqlcode==1403) break;
+   printf("\t%s\t%s%s\t%s\t%d\t%s\t%d\n",s_sno,s_name,s_sex,s_dept,s_age,sc_cno,sc_grade);
+   }
+   exec sql close all;
+   getchar();
+   printf("任意键返回上一级......");
+   getchar();
+   system("cls");
+   viewmenu();
+ }
+void updates()//更改基本数据
+{
+      
+    exec sql begin declare section; 
+      char s_sno[20],s_name[10],s_sex[5],s_dept[5];
+	  int s_age;
+   exec sql end declare section;
+   exec sql whenever SQLERROR do sql_error(); 
+    printf("\n                       温馨提示：键入学号为字母exit,返回上一级\n\n");
+   printf("请输入修改的学号：");
+   scanf("%s",s_sno);
+    if(strcmp(s_sno,"exit")==0)
+    {
+	    system("cls");
+	    updatemenu();
+	
+	}
+   exec sql select age,sex,NVL(dept,'  '),sname into :s_age,:s_sex,:s_dept,:s_name from s where sno=:s_sno;
+    if (sqlca.sqlcode ==1403) 
+	{
+	    system("cls");
+        updates();
+	}
+   printf("所选学号：\n");
+   printf("姓名\t性别\t系别\t年龄\n");
+   printf("%s%s\t%s\t%d\n",s_name,s_sex,s_dept,s_age);
+   printf("修改：\n");
+   printf("姓名：");
+   getchar();
+   gets(s_name);
+   printf("性别：");
+   gets(s_sex);
+   printf("系别：");
+   gets(s_dept);
+   printf("年龄：");
+   
+   scanf("%d",&s_age);
+   exec sql update s set sname=:s_name where sno=:s_sno;
+   exec sql update s set sex=:s_sex where sno=:s_sno;
+   exec sql update s set dept=:s_dept where sno=:s_sno;
+   exec sql update s set age=:s_age where sno=:s_sno;
+   exec sql commit;
+   
+   printf("\n完成更改，commit\n");
+   getchar();
+   getchar();
+   system("cls");
+   updatemenu();
+}
+void updatesc()//更改成绩
+{
+   exec sql begin declare section; 
+      char sc_cno[5],sc_name[20],sc_sno[10];
+	  int sc_grade;
+   exec sql end declare section;
+   exec sql whenever SQLERROR do sql_error(); 
+    printf("\n                       温馨提示：键入姓名为字母exit,返回上一级\n\n");
+   printf("请输入成绩修改的学号：");
+   fflush(stdin);
+   scanf("%s",sc_sno);
+    if(strcmp(sc_sno,"exit")==0)
+    {
+	    system("cls");
+	    updatemenu();
+		
+	}
+   exec sql declare sx1 cursor for
+   select cno,NVL(grade,0) from sc where sno=:sc_sno;
+
+   exec sql open sx1;
+   
+   while(1)
+	{
+	exec sql fetch sx1 into :sc_cno,:sc_grade;
+	if (sqlca.sqlcode == 1403) 
+	{ 
+	     system("cls");
+		 updatesc();
+		
+	}
+	printf("学号\t课程号\t成绩\n");
+	printf("%s\t%s\t%d\n",sc_sno,sc_cno,sc_grade);
+	printf("修改的成绩：");
+	scanf("%d",&sc_grade);
+	exec sql update sc set grade=:sc_grade where cno=:sc_cno and sno=:sc_sno;
+	exec sql commit;
+	}
+	exec sql close sx1;
+	getchar();
+	getchar();	
+	printf("完成修改，commit\n");
+	system("cls");
+	updatemenu();
+}
+
+void deletemenu()//删除主菜单
+{
+  int i;
+  printf("                       \n1.按学号删除\n");
+  printf("                       \n2.按姓名删除\n"); 
+  printf("                       \n3.返回上一级\n");
+  printf("                  请选择:");
+  fflush(stdin);
+  scanf("%d",&i);
+  system("cls");
+  switch (i)
+  {
+     case 1:
+	 deletesno();
+	 break;
+	 case 2:
+	 deletename();
+	 break;
+	 case 3:
+	 menu();
+	 break;
+	 default:
+	 system("cls");
+	 deletemenu();
+	 break;
+
+  }
+}
+void updatemenu()//修改主菜单
+{
+    int i;
+	printf("                       \n1.修改学生基本信息\n");
+	printf("                       \n2.修改学生成绩\n");
+	printf("                       \n3.返回上一级\n");
+	printf("              请选择：");
+	fflush(stdin);
+	scanf("%d",&i);
+	system("cls");
+	switch (i)
+   {
+     case 1:
+	 updates();
+	 break;
+	 case 2:
+	 updatesc();
+	 break;
+	 case 3:
+	 menu();
+	 break;
+	 default:
+	
+	 system("cls");
+	 updatemenu();
+	 break;
+
+   }
+}
+void viewmenu()//查询主菜单
+{
+    int i;
+	printf("                         \n1.查询学生基本信息\n");
+	printf("                         \n2.查询学生成绩\n");
+	printf("                         \n3.查询全体学生成绩\n");
+	printf("                         \n4.返回上一级\n");
+	fflush(stdin);
+	printf("                  请选择：");
+	scanf("%d",&i);
+	system("cls");
+	switch(i)
+	{
+	   case 1:
+	   views();
+	   break;
+	   case 2:
+	   viewgrade();
+	   break;
+	   case 3:
+	   viewall();
+	   break;
+	   case 4:
+	   menu();
+	   break;
+	   default:
+	   system("cls");
+	   viewmenu();
+	   break;
+	}
+}
